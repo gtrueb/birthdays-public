@@ -34,7 +34,7 @@ struct SettingsView: View {
                 } header: {
                     Text("Notifications")
                 } footer: {
-                    Text("Get a notification on the morning of each birthday.")
+                    Text("Receive a notification on the morning of each birthday.")
                 }
 
                 if notificationsEnabled {
@@ -54,10 +54,11 @@ struct SettingsView: View {
                     }
                     .disabled(store.birthdays.isEmpty)
                 } footer: {
-                    Text("Removes every birthday from this app. Your contacts are not changed.")
+                    Text("Removes every birthday from this app. Contacts will not be affected.")
                 }
             }
             .contentMargins(.horizontal, 16, for: .scrollContent)
+            .environment(\.defaultMinListRowHeight, 44)
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -96,7 +97,8 @@ struct SettingsView: View {
                 Text("This cannot be undone.")
             }
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.height(notificationsEnabled ? 560 : 330)])
+        .presentationDragIndicator(.hidden)
     }
 
     private func reschedule() {

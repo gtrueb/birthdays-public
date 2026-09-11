@@ -32,7 +32,6 @@ struct BirthdayListView: View {
             }
             .navigationTitle("Birthdays")
             .toolbar { toolbarContent }
-            .toolbar(store.birthdays.isEmpty ? .hidden : .visible, for: .bottomBar)
             .navigationDestination(for: UUID.self) { id in
                 BirthdayDetailView(id: id)
             }
@@ -52,7 +51,8 @@ struct BirthdayListView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             switch screen {
             case "detail":
-                if let first = BirthdaySections.build(from: store.birthdays).first?.birthdays.first { path.append(first.id) }
+                let all = BirthdaySections.build(from: store.birthdays).flatMap(\.birthdays)
+                if let pick = all.first(where: { $0.daysUntil() > 7 }) ?? all.first { path.append(pick.id) }
             case "add": showingAdd = true
             case "settings": showingSettings = true
             case "contacts": importKind = .contacts
@@ -101,9 +101,6 @@ struct BirthdayListView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
-                Button { showingAdd = true } label: {
-                    Label("New Birthday", systemImage: "plus")
-                }
                 Section("Import") {
                     Button { importKind = .contacts } label: {
                         Label("From Contacts", systemImage: "person.crop.circle")
@@ -149,9 +146,10 @@ struct EmptyBirthdaysView: View {
         ContentUnavailableView {
             Label("No Birthdays", systemImage: "birthday.cake")
         } description: {
-            Text("Import birthdays from Contacts, or add one from the menu.")
+            Text("Birthdays you add or import will appear here.")
         } actions: {
             Button("Import from Contacts", action: onImport)
+                .buttonStyle(.bordered)
         }
     }
 }

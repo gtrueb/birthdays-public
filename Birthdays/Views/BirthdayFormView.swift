@@ -16,6 +16,7 @@ struct BirthdayFormView: View {
     @State private var day: Int
     /// 0 means "no year", like the dashes in the Contacts birthday wheel.
     @State private var year: Int
+    @State private var notify: Bool
     @State private var showingPicker = false
     @State private var confirmDelete = false
     @FocusState private var nameFocused: Bool
@@ -30,12 +31,14 @@ struct BirthdayFormView: View {
             _month = State(initialValue: today.month ?? 1)
             _day = State(initialValue: today.day ?? 1)
             _year = State(initialValue: 0)
+            _notify = State(initialValue: true)
         case .edit(let b):
             _name = State(initialValue: b.name)
             _notes = State(initialValue: b.notes)
             _month = State(initialValue: b.month)
             _day = State(initialValue: b.day)
             _year = State(initialValue: b.year ?? 0)
+            _notify = State(initialValue: b.notify)
         }
     }
 
@@ -68,7 +71,7 @@ struct BirthdayFormView: View {
                         .textInputAutocapitalization(.words)
                         .focused($nameFocused)
                     TextField("Notes", text: $notes, axis: .vertical)
-                        .lineLimit(3...6)
+                        .lineLimit(4...8)
                 }
 
                 Section {
@@ -76,7 +79,7 @@ struct BirthdayFormView: View {
                         withAnimation(.snappy) { showingPicker.toggle() }
                         nameFocused = false
                     } label: {
-                        LabeledContent("Birthday") {
+                        LabeledContent("Date") {
                             // Styled like the compact system date picker.
                             Text(dateText)
                                 .foregroundStyle(showingPicker ? Color.accentColor : Color.primary)
@@ -92,6 +95,12 @@ struct BirthdayFormView: View {
                     }
                 }
 
+                Section {
+                    Toggle("Notification", isOn: $notify)
+                } footer: {
+                    Text("Get a notification on the morning of the birthday.")
+                }
+
                 if isEditing {
                     Section {
                         Button("Delete Birthday", role: .destructive) {
@@ -101,6 +110,7 @@ struct BirthdayFormView: View {
                     }
                 }
             }
+            .listSectionSpacing(16)
             .contentMargins(.top, 8, for: .scrollContent)
             .navigationTitle(isEditing ? "Edit Birthday" : "New Birthday")
             .navigationBarTitleDisplayMode(.inline)
@@ -167,13 +177,14 @@ struct BirthdayFormView: View {
     private func save() {
         switch mode {
         case .add:
-            store.add(Birthday(name: trimmedName, month: month, day: day, year: year == 0 ? nil : year, notes: notes))
+            store.add(Birthday(name: trimmedName, month: month, day: day, year: year == 0 ? nil : year, notes: notes, notify: notify))
         case .edit(var b):
             b.name = trimmedName
             b.month = month
             b.day = day
             b.year = year == 0 ? nil : year
             b.notes = notes
+            b.notify = notify
             store.update(b)
         }
         dismiss()

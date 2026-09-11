@@ -54,8 +54,10 @@ enum DebugSeeder {
     static func sampleBirthdays() -> [Birthday] {
         people.map {
             Birthday(name: "\($0.given) \($0.family)", month: $0.month, day: $0.day, year: $0.year,
+                     notes: $0.given == "Aylin" ? "Loves dark chocolate. Dinner at Kronenhalle last year." : "",
                      source: .contacts, contactIdentifier: nil,
-                     phoneNumber: "+41 79 123 45 67")
+                     phoneNumber: "+41 79 123 45 67",
+                     email: $0.given == "Aylin" ? "aylin@example.com" : nil)
         }
     }
 

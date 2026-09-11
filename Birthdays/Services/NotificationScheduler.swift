@@ -24,7 +24,7 @@ enum NotificationScheduler {
         let minute = prefs.minutesSinceMidnight % 60
         let cal = Calendar.current
         // iOS keeps at most 64 pending requests per app.
-        let upcoming = birthdays.sorted { $0.daysUntil() < $1.daysUntil() }.prefix(20)
+        let upcoming = birthdays.filter(\.notify).sorted { $0.daysUntil() < $1.daysUntil() }.prefix(20)
 
         for birthday in upcoming {
             let next = birthday.nextOccurrence()

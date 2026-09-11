@@ -16,6 +16,8 @@ struct Birthday: Identifiable, Codable, Hashable {
     var phoneNumber: String?
     var email: String?
     var imageData: Data?
+    /// Per-person switch; the global setting still has to be on.
+    var notify: Bool
 
     init(id: UUID = UUID(),
          name: String,
@@ -27,7 +29,8 @@ struct Birthday: Identifiable, Codable, Hashable {
          contactIdentifier: String? = nil,
          phoneNumber: String? = nil,
          email: String? = nil,
-         imageData: Data? = nil) {
+         imageData: Data? = nil,
+         notify: Bool = true) {
         self.id = id
         self.name = name
         self.month = month
@@ -39,10 +42,27 @@ struct Birthday: Identifiable, Codable, Hashable {
         self.phoneNumber = phoneNumber
         self.email = email
         self.imageData = imageData
+        self.notify = notify
     }
 }
 
 extension Birthday {
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(UUID.self, forKey: .id)
+        name = try c.decode(String.self, forKey: .name)
+        month = try c.decode(Int.self, forKey: .month)
+        day = try c.decode(Int.self, forKey: .day)
+        year = try c.decodeIfPresent(Int.self, forKey: .year)
+        notes = try c.decodeIfPresent(String.self, forKey: .notes) ?? ""
+        source = try c.decodeIfPresent(BirthdaySource.self, forKey: .source) ?? .manual
+        contactIdentifier = try c.decodeIfPresent(String.self, forKey: .contactIdentifier)
+        phoneNumber = try c.decodeIfPresent(String.self, forKey: .phoneNumber)
+        email = try c.decodeIfPresent(String.self, forKey: .email)
+        imageData = try c.decodeIfPresent(Data.self, forKey: .imageData)
+        notify = try c.decodeIfPresent(Bool.self, forKey: .notify) ?? true
+    }
+
     /// The next date this birthday falls on. Today counts.
     func nextOccurrence(after reference: Date = .now) -> Date {
         let cal = Calendar.current

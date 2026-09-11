@@ -16,7 +16,7 @@ struct BirthdayRow: View {
     var body: some View {
         HStack(spacing: 12) {
             AvatarView(birthday: birthday, size: 40)
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(birthday.name)
                 Text(subtitle)
                     .font(.subheadline)

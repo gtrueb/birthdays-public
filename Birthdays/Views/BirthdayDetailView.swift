@@ -6,6 +6,7 @@ struct BirthdayDetailView: View {
     @Environment(\.openURL) private var openURL
     let id: UUID
     @State private var editing = false
+    @State private var confirmDelete = false
 
     var body: some View {
         if let birthday = store.birthday(id: id) {
@@ -25,21 +26,36 @@ struct BirthdayDetailView: View {
                 }
 
                 Section {
-                    field("Birthday", value: birthday.longDateText)
+                    Button { openCalendar(birthday) } label: {
+                        field("birthday", value: birthday.longDateText)
+                            .foregroundStyle(Color.accentColor)
+                    }
                     if birthday.daysUntil() > 0 {
-                        field("Next Birthday", value: nextText(birthday))
+                        field("next birthday", value: nextText(birthday))
+                    }
+                    if let age = birthday.currentAge(), birthday.daysUntil() > 0 {
+                        field("age", value: "\(age)")
                     }
                 }
 
                 if !birthday.notes.isEmpty {
                     Section {
-                        field("Notes", value: birthday.notes)
+                        field("notes", value: birthday.notes)
+                    }
+                }
+
+                Section {
+                    ShareLink(item: shareText(birthday)) {
+                        Text("Share Birthday")
+                    }
+                    Button("Delete Birthday", role: .destructive) {
+                        confirmDelete = true
                     }
                 }
             }
             .listStyle(.insetGrouped)
             .listSectionSpacing(16)
-            .contentMargins(.top, 16, for: .scrollContent)
+            .contentMargins(.top, 8, for: .scrollContent)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -48,6 +64,12 @@ struct BirthdayDetailView: View {
             }
             .sheet(isPresented: $editing) {
                 BirthdayFormView(mode: .edit(birthday))
+            }
+            .confirmationDialog("Delete this birthday?", isPresented: $confirmDelete, titleVisibility: .visible) {
+                Button("Delete Birthday", role: .destructive) {
+                    store.delete(birthday)
+                    dismiss()
+                }
             }
         } else {
             Color.clear.onAppear { dismiss() }
@@ -83,6 +105,16 @@ struct BirthdayDetailView: View {
         case 1: return "Tomorrow"
         default: return birthday.nextOccurrence().formatted(.dateTime.weekday(.wide).month(.wide).day())
         }
+    }
+
+    private func shareText(_ birthday: Birthday) -> String {
+        "\(birthday.name)'s birthday is on \(birthday.nextOccurrence().formatted(.dateTime.weekday(.wide).month(.wide).day()))."
+    }
+
+    /// Opens Calendar on the next occurrence, like tapping a birthday in Contacts.
+    private func openCalendar(_ birthday: Birthday) {
+        let seconds = birthday.nextOccurrence().timeIntervalSinceReferenceDate
+        open("calshow:\(Int(seconds))")
     }
 
     // MARK: - Contacts-style action tiles
@@ -132,6 +164,7 @@ struct BirthdayDetailView: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
             Text(value)
+                .font(.body)
         }
         .padding(.vertical, 2)
     }

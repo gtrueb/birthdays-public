@@ -7,7 +7,7 @@ struct ImportView: View {
         switch kind {
         case .contacts:
             ImportPickerView(
-                title: "Contacts",
+                title: "Choose Contacts",
                 newHeader: "New Contacts",
                 emptyTitle: "No Birthdays Found",
                 emptyMessage: "None of your contacts have a birthday saved.",
@@ -20,7 +20,7 @@ struct ImportView: View {
             )
         case .calendar:
             ImportPickerView(
-                title: "Calendar",
+                title: "Choose Events",
                 newHeader: "New Events",
                 emptyTitle: "No Birthdays Found",
                 emptyMessage: "There are no birthday events in your calendars for the next year.",
@@ -65,15 +65,11 @@ struct ImportPickerView: View {
     var body: some View {
         NavigationStack {
             content
-                .navigationTitle(title)
+                .navigationTitle(selected.isEmpty ? title : "\(selected.count) Selected")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
+                    ToolbarItem(placement: .topBarTrailing) {
                         Button("Cancel") { dismiss() }
-                    }
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button(importTitle) { importSelected() }
-                            .disabled(selected.isEmpty)
                     }
                 }
                 .task { await loadItems() }
@@ -111,7 +107,7 @@ struct ImportPickerView: View {
         // Native multi-select: system circles, gray selected rows.
         return List(selection: $selected) {
             if !new.isEmpty {
-                Section("New") {
+                Section {
                     ForEach(new) { birthday in
                         rowText(birthday)
                             .tag(birthday.id)
@@ -137,16 +133,18 @@ struct ImportPickerView: View {
         .environment(\.editMode, .constant(.active))
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(selected.count == new.count && !new.isEmpty ? "Deselect All" : "Select All") {
+                    if selected.count == new.count { selected.removeAll() } else { selected = Set(new.map(\.id)) }
+                }
+                .disabled(new.isEmpty)
+            }
             ToolbarItem(placement: .bottomBar) {
                 HStack {
-                    Button(selected.count == new.count && !new.isEmpty ? "Deselect All" : "Select All") {
-                        if selected.count == new.count { selected.removeAll() } else { selected = Set(new.map(\.id)) }
-                    }
-                    .disabled(new.isEmpty)
                     Spacer()
-                    Text(selected.isEmpty ? "\(new.count) new" : "\(selected.count) selected")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                    Button("Import") { importSelected() }
+                        .fontWeight(.semibold)
+                        .disabled(selected.isEmpty)
                 }
             }
         }
@@ -163,10 +161,6 @@ struct ImportPickerView: View {
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
-    }
-
-    private var importTitle: String {
-        selected.isEmpty ? "Import" : "Import (\(selected.count))"
     }
 
     private func loadItems() async {
