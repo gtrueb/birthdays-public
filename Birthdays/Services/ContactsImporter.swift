@@ -20,6 +20,7 @@ enum ContactsImporter {
             CNContactBirthdayKey as CNKeyDescriptor,
             CNContactThumbnailImageDataKey as CNKeyDescriptor,
             CNContactPhoneNumbersKey as CNKeyDescriptor,
+            CNContactEmailAddressesKey as CNKeyDescriptor,
         ]
         let request = CNContactFetchRequest(keysToFetch: keys)
         request.sortOrder = .userDefault
@@ -40,6 +41,7 @@ enum ContactsImporter {
                 source: .contacts,
                 contactIdentifier: contact.identifier,
                 phoneNumber: contact.phoneNumbers.first?.value.stringValue,
+                email: contact.emailAddresses.first.map { String($0.value) },
                 imageData: contact.thumbnailImageData
             ))
         }

@@ -8,6 +8,7 @@ struct ImportView: View {
         case .contacts:
             ImportPickerView(
                 title: "Contacts",
+                newHeader: "New Contacts",
                 emptyTitle: "No Birthdays Found",
                 emptyMessage: "None of your contacts have a birthday saved.",
                 deniedTitle: "No Access to Contacts",
@@ -20,6 +21,7 @@ struct ImportView: View {
         case .calendar:
             ImportPickerView(
                 title: "Calendar",
+                newHeader: "New Events",
                 emptyTitle: "No Birthdays Found",
                 emptyMessage: "There are no birthday events in your calendars for the next year.",
                 deniedTitle: "No Access to Calendar",
@@ -45,6 +47,7 @@ struct ImportPickerView: View {
     }
 
     let title: String
+    let newHeader: String
     let emptyTitle: String
     let emptyMessage: String
     let deniedTitle: String
@@ -57,6 +60,7 @@ struct ImportPickerView: View {
     @Environment(\.openURL) private var openURL
     @State private var status: Status = .loading
     @State private var selected = Set<UUID>()
+    @State private var searchText = ""
 
     var body: some View {
         NavigationStack {
@@ -102,59 +106,54 @@ struct ImportPickerView: View {
     }
 
     private func list(_ items: [Birthday]) -> some View {
-        let new = items.filter { !store.contains($0) }
-        let existing = items.filter { store.contains($0) }
-        return List {
+        let new = items.filter { !store.contains($0) && matches($0) }
+        let existing = items.filter { store.contains($0) && matches($0) }
+        // Native multi-select: system circles, gray selected rows.
+        return List(selection: $selected) {
             if !new.isEmpty {
-                Section {
+                Section("New") {
                     ForEach(new) { birthday in
-                        row(birthday)
-                    }
-                } header: {
-                    HStack {
-                        Text("\(new.count) New")
-                        Spacer()
-                        Button(selected.count == new.count ? "Deselect All" : "Select All") {
-                            if selected.count == new.count { selected.removeAll() } else { selected = Set(new.map(\.id)) }
-                        }
-                        .font(.footnote)
-                        .textCase(nil)
+                        rowText(birthday)
+                            .tag(birthday.id)
                     }
                 }
             }
             if !existing.isEmpty {
                 Section("Already Added") {
                     ForEach(existing) { birthday in
-                        HStack(spacing: 12) {
-                            AvatarView(birthday: birthday, size: 40)
+                        HStack {
                             rowText(birthday)
                             Spacer()
                             Image(systemName: "checkmark")
                                 .foregroundStyle(.secondary)
                         }
                         .foregroundStyle(.secondary)
+                        .selectionDisabled()
                     }
                 }
             }
         }
         .listStyle(.insetGrouped)
-    }
-
-    private func row(_ birthday: Birthday) -> some View {
-        let isOn = selected.contains(birthday.id)
-        return Button {
-            if isOn { selected.remove(birthday.id) } else { selected.insert(birthday.id) }
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: isOn ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
-                    .foregroundStyle(isOn ? Color.accentColor : Color(.tertiaryLabel))
-                AvatarView(birthday: birthday, size: 40)
-                rowText(birthday)
-                Spacer()
+        .environment(\.editMode, .constant(.active))
+        .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
+        .toolbar {
+            ToolbarItem(placement: .bottomBar) {
+                HStack {
+                    Button(selected.count == new.count && !new.isEmpty ? "Deselect All" : "Select All") {
+                        if selected.count == new.count { selected.removeAll() } else { selected = Set(new.map(\.id)) }
+                    }
+                    .disabled(new.isEmpty)
+                    Spacer()
+                    Text(selected.isEmpty ? "\(new.count) new" : "\(selected.count) selected")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
-        .foregroundStyle(.primary)
+    }
+
+    private func matches(_ birthday: Birthday) -> Bool {
+        searchText.isEmpty || birthday.name.localizedCaseInsensitiveContains(searchText)
     }
 
     private func rowText(_ birthday: Birthday) -> some View {
@@ -173,8 +172,6 @@ struct ImportPickerView: View {
     private func loadItems() async {
         do {
             if let items = try await load() {
-                let new = items.filter { !store.contains($0) }
-                selected = Set(new.map(\.id))
                 status = .loaded(items)
             } else {
                 status = .denied

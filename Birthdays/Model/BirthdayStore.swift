@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import WidgetKit
 
 @Observable
 final class BirthdayStore {
@@ -7,14 +8,8 @@ final class BirthdayStore {
     @ObservationIgnored private let fileURL: URL
 
     init(fileURL: URL? = nil) {
-        self.fileURL = fileURL ?? Self.defaultURL
+        self.fileURL = fileURL ?? SharedStore.fileURL
         load()
-    }
-
-    private static var defaultURL: URL {
-        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        return dir.appendingPathComponent("birthdays.json")
     }
 
     func birthday(id: UUID) -> Birthday? {
@@ -73,5 +68,6 @@ final class BirthdayStore {
             try? data.write(to: fileURL, options: .atomic)
         }
         NotificationScheduler.reschedule(birthdays)
+        WidgetCenter.shared.reloadAllTimelines()
     }
 }

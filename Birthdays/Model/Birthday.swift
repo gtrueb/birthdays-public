@@ -14,6 +14,7 @@ struct Birthday: Identifiable, Codable, Hashable {
     var source: BirthdaySource
     var contactIdentifier: String?
     var phoneNumber: String?
+    var email: String?
     var imageData: Data?
 
     init(id: UUID = UUID(),
@@ -25,6 +26,7 @@ struct Birthday: Identifiable, Codable, Hashable {
          source: BirthdaySource = .manual,
          contactIdentifier: String? = nil,
          phoneNumber: String? = nil,
+         email: String? = nil,
          imageData: Data? = nil) {
         self.id = id
         self.name = name
@@ -35,6 +37,7 @@ struct Birthday: Identifiable, Codable, Hashable {
         self.source = source
         self.contactIdentifier = contactIdentifier
         self.phoneNumber = phoneNumber
+        self.email = email
         self.imageData = imageData
     }
 }

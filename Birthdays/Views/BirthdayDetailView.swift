@@ -14,38 +14,32 @@ struct BirthdayDetailView: View {
                     header(birthday)
                 }
                 .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 8, trailing: 0))
+                .listRowInsets(EdgeInsets())
 
-                if let phone = birthday.phoneNumber, !phone.isEmpty {
+                if hasContactActions(birthday) {
                     Section {
-                        HStack(spacing: 8) {
-                            actionButton("Message", systemImage: "message.fill") {
-                                open("sms:", phone)
-                            }
-                            actionButton("Call", systemImage: "phone.fill") {
-                                open("tel:", phone)
-                            }
-                        }
+                        actionTiles(birthday)
                     }
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets())
                 }
 
                 Section {
-                    LabeledContent("Birthday", value: birthday.longDateText)
-                    if let age = birthday.currentAge() {
-                        LabeledContent("Age", value: "\(age)")
+                    field("Birthday", value: birthday.longDateText)
+                    if birthday.daysUntil() > 0 {
+                        field("Next Birthday", value: nextText(birthday))
                     }
-                    LabeledContent("Next Birthday", value: nextText(birthday))
                 }
 
                 if !birthday.notes.isEmpty {
-                    Section("Notes") {
-                        Text(birthday.notes)
+                    Section {
+                        field("Notes", value: birthday.notes)
                     }
                 }
             }
             .listStyle(.insetGrouped)
+            .listSectionSpacing(16)
+            .contentMargins(.top, 16, for: .scrollContent)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -60,19 +54,21 @@ struct BirthdayDetailView: View {
         }
     }
 
+    // MARK: - Header
+
     private func header(_ birthday: Birthday) -> some View {
-        VStack(spacing: 6) {
-            AvatarView(birthday: birthday, size: 100)
-                .padding(.bottom, 6)
+        VStack(spacing: 4) {
+            AvatarView(birthday: birthday, size: 96)
+                .padding(.bottom, 8)
             Text(birthday.name)
-                .font(.title2.weight(.bold))
+                .font(.title.weight(.bold))
                 .multilineTextAlignment(.center)
             Text(headline(birthday))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, 8)
+        .padding(.bottom, 4)
     }
 
     private func headline(_ birthday: Birthday) -> String {
@@ -83,27 +79,60 @@ struct BirthdayDetailView: View {
     }
 
     private func nextText(_ birthday: Birthday) -> String {
-        birthday.nextOccurrence().formatted(.dateTime.weekday(.wide).month(.wide).day())
+        switch birthday.daysUntil() {
+        case 1: return "Tomorrow"
+        default: return birthday.nextOccurrence().formatted(.dateTime.weekday(.wide).month(.wide).day())
+        }
     }
 
-    private func actionButton(_ title: String, systemImage: String, action: @escaping () -> Void) -> some View {
+    // MARK: - Contacts-style action tiles
+
+    private func hasContactActions(_ birthday: Birthday) -> Bool {
+        !(birthday.phoneNumber ?? "").isEmpty || !(birthday.email ?? "").isEmpty
+    }
+
+    private func actionTiles(_ birthday: Birthday) -> some View {
+        let phone = birthday.phoneNumber?.filter { $0.isNumber || $0 == "+" } ?? ""
+        let email = birthday.email ?? ""
+        return HStack(spacing: 8) {
+            tile("message", systemImage: "message.fill", enabled: !phone.isEmpty) { open("sms:" + phone) }
+            tile("call", systemImage: "phone.fill", enabled: !phone.isEmpty) { open("tel:" + phone) }
+            tile("video", systemImage: "video.fill", enabled: !phone.isEmpty) { open("facetime:" + phone) }
+            tile("mail", systemImage: "envelope.fill", enabled: !email.isEmpty) { open("mailto:" + email) }
+        }
+    }
+
+    private func tile(_ title: String, systemImage: String, enabled: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            VStack(spacing: 4) {
+            VStack(spacing: 3) {
                 Image(systemName: systemImage)
-                    .font(.title3)
+                    .font(.system(size: 20))
+                    .frame(height: 24)
                 Text(title)
-                    .font(.caption)
+                    .font(.caption2)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 10)
+            .frame(height: 56)
             .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
         }
         .buttonStyle(.plain)
-        .foregroundStyle(Color.accentColor)
+        .foregroundStyle(enabled ? Color.accentColor : Color(.tertiaryLabel))
+        .disabled(!enabled)
     }
 
-    private func open(_ scheme: String, _ phone: String) {
-        let digits = phone.filter { $0.isNumber || $0 == "+" }
-        if let url = URL(string: scheme + digits) { openURL(url) }
+    private func open(_ string: String) {
+        if let url = URL(string: string) { openURL(url) }
+    }
+
+    // MARK: - Contacts-style stacked field
+
+    private func field(_ label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(label)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+            Text(value)
+        }
+        .padding(.vertical, 2)
     }
 }

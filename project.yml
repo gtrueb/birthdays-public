@@ -19,6 +19,14 @@ targets:
     platform: iOS
     sources:
       - Birthdays
+    dependencies:
+      - target: BirthdaysWidget
+        embed: true
+    entitlements:
+      path: Birthdays/Birthdays.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.giantrub.Birthdays
     info:
       path: Birthdays/Info.plist
       properties:
@@ -37,4 +45,28 @@ targets:
         ENABLE_PREVIEWS: "YES"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        TARGETED_DEVICE_FAMILY: "1"
+  BirthdaysWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - BirthdaysWidget
+      - Birthdays/Model/Birthday.swift
+      - Birthdays/Model/SharedStore.swift
+    info:
+      path: BirthdaysWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Birthdays
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: BirthdaysWidget/BirthdaysWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - group.com.giantrub.Birthdays
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.giantrub.Birthdays.widget
+        GENERATE_INFOPLIST_FILE: "NO"
+        SKIP_INSTALL: "YES"
         TARGETED_DEVICE_FAMILY: "1"

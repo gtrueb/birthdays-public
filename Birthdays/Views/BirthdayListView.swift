@@ -32,6 +32,7 @@ struct BirthdayListView: View {
             }
             .navigationTitle("Birthdays")
             .toolbar { toolbarContent }
+            .toolbar(store.birthdays.isEmpty ? .hidden : .visible, for: .bottomBar)
             .navigationDestination(for: UUID.self) { id in
                 BirthdayDetailView(id: id)
             }
@@ -74,6 +75,7 @@ struct BirthdayListView: View {
                             BirthdayRow(birthday: birthday, showsCountdown: !section.isRelative)
                         }
                         .foregroundStyle(.primary)
+                        .listRowSeparator(.hidden, edges: .top)
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
                                 store.delete(birthday)
@@ -86,6 +88,7 @@ struct BirthdayListView: View {
             }
         }
         .listStyle(.plain)
+        .listSectionSeparator(.hidden)
         .searchable(text: $searchText, prompt: "Search")
         .overlay {
             if filtered.isEmpty {
@@ -98,6 +101,9 @@ struct BirthdayListView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
+                Button { showingAdd = true } label: {
+                    Label("New Birthday", systemImage: "plus")
+                }
                 Section("Import") {
                     Button { importKind = .contacts } label: {
                         Label("From Contacts", systemImage: "person.crop.circle")
@@ -123,13 +129,16 @@ struct BirthdayListView: View {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
                         Text("New Birthday")
-                            .fontWeight(.semibold)
+                            .fontWeight(.bold)
                     }
                 }
+                .padding(.leading, -8)
                 Spacer()
             }
         }
     }
+
+
 }
 
 struct EmptyBirthdaysView: View {
@@ -140,11 +149,9 @@ struct EmptyBirthdaysView: View {
         ContentUnavailableView {
             Label("No Birthdays", systemImage: "birthday.cake")
         } description: {
-            Text("Import the birthdays saved with your contacts, or add one yourself.")
+            Text("Import birthdays from Contacts, or add one from the menu.")
         } actions: {
             Button("Import from Contacts", action: onImport)
-                .buttonStyle(.borderedProminent)
-            Button("Add Birthday", action: onAdd)
         }
     }
 }

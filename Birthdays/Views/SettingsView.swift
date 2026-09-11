@@ -27,16 +27,25 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section {
-                    Toggle("Notifications", isOn: $notificationsEnabled)
+                    Toggle("Allow Notifications", isOn: $notificationsEnabled)
                     if notificationsEnabled {
                         DatePicker("Time", selection: timeBinding, displayedComponents: .hourAndMinute)
-                        Toggle("1 Day Before", isOn: $remindDayBefore)
-                        Toggle("1 Week Before", isOn: $remindWeekBefore)
                     }
                 } header: {
-                    Text("Reminders")
+                    Text("Notifications")
                 } footer: {
-                    Text("You always get a notification on the day.")
+                    Text("Get a notification on the morning of each birthday.")
+                }
+
+                if notificationsEnabled {
+                    Section {
+                        Toggle("1 Day Before", isOn: $remindDayBefore)
+                        Toggle("1 Week Before", isOn: $remindWeekBefore)
+                    } header: {
+                        Text("Also Notify")
+                    } footer: {
+                        Text("Extra notifications ahead of the day, at the same time.")
+                    }
                 }
 
                 Section {
@@ -45,9 +54,10 @@ struct SettingsView: View {
                     }
                     .disabled(store.birthdays.isEmpty)
                 } footer: {
-                    Text(store.birthdays.count == 1 ? "1 birthday" : "\(store.birthdays.count) birthdays")
+                    Text("Removes every birthday from this app. Your contacts are not changed.")
                 }
             }
+            .contentMargins(.horizontal, 16, for: .scrollContent)
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -77,7 +87,7 @@ struct SettingsView: View {
             } message: {
                 Text("Allow notifications for Birthdays in Settings.")
             }
-            .confirmationDialog("Delete all birthdays?", isPresented: $confirmDeleteAll, titleVisibility: .visible) {
+            .confirmationDialog("Delete all \(store.birthdays.count) birthdays?", isPresented: $confirmDeleteAll, titleVisibility: .visible) {
                 Button("Delete All", role: .destructive) {
                     store.deleteAll()
                     dismiss()
@@ -86,6 +96,7 @@ struct SettingsView: View {
                 Text("This cannot be undone.")
             }
         }
+        .presentationDetents([.medium, .large])
     }
 
     private func reschedule() {

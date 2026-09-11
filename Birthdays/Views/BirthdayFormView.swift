@@ -12,31 +12,30 @@ struct BirthdayFormView: View {
     let mode: Mode
     @State private var name: String
     @State private var notes: String
-    @State private var includeYear: Bool
     @State private var month: Int
     @State private var day: Int
-    @State private var fullDate: Date
+    /// 0 means "no year", like the dashes in the Contacts birthday wheel.
+    @State private var year: Int
+    @State private var showingPicker = false
     @State private var confirmDelete = false
+    @FocusState private var nameFocused: Bool
 
     init(mode: Mode) {
         self.mode = mode
-        let cal = Calendar.current
         switch mode {
         case .add:
-            let today = cal.dateComponents([.month, .day], from: .now)
+            let today = Calendar.current.dateComponents([.month, .day], from: .now)
             _name = State(initialValue: "")
             _notes = State(initialValue: "")
-            _includeYear = State(initialValue: false)
             _month = State(initialValue: today.month ?? 1)
             _day = State(initialValue: today.day ?? 1)
-            _fullDate = State(initialValue: .now)
+            _year = State(initialValue: 0)
         case .edit(let b):
             _name = State(initialValue: b.name)
             _notes = State(initialValue: b.notes)
-            _includeYear = State(initialValue: b.year != nil)
             _month = State(initialValue: b.month)
             _day = State(initialValue: b.day)
-            _fullDate = State(initialValue: b.birthDate ?? .now)
+            _year = State(initialValue: b.year ?? 0)
         }
     }
 
@@ -49,6 +48,17 @@ struct BirthdayFormView: View {
         name.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
+    private var currentYear: Int { Calendar.current.component(.year, from: .now) }
+
+    private var dateText: String {
+        var comps = DateComponents(year: year == 0 ? 2024 : year, month: month, day: day)
+        comps.hour = 12
+        guard let date = Calendar.current.date(from: comps) else { return "" }
+        return year == 0
+            ? date.formatted(.dateTime.month(.wide).day())
+            : date.formatted(.dateTime.month(.wide).day().year())
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -56,29 +66,30 @@ struct BirthdayFormView: View {
                     TextField("Name", text: $name)
                         .textContentType(.name)
                         .textInputAutocapitalization(.words)
-                }
-
-                Section {
-                    if includeYear {
-                        DatePicker("Birthday", selection: $fullDate, in: ...Date.now, displayedComponents: .date)
-                    } else {
-                        Picker("Month", selection: $month) {
-                            ForEach(1...12, id: \.self) { m in
-                                Text(monthName(m)).tag(m)
-                            }
-                        }
-                        Picker("Day", selection: $day) {
-                            ForEach(1...daysInMonth, id: \.self) { d in
-                                Text("\(d)").tag(d)
-                            }
-                        }
-                    }
-                    Toggle("Include Year", isOn: $includeYear.animation())
-                }
-
-                Section {
+                        .focused($nameFocused)
                     TextField("Notes", text: $notes, axis: .vertical)
                         .lineLimit(3...6)
+                }
+
+                Section {
+                    Button {
+                        withAnimation(.snappy) { showingPicker.toggle() }
+                        nameFocused = false
+                    } label: {
+                        LabeledContent("Birthday") {
+                            // Styled like the compact system date picker.
+                            Text(dateText)
+                                .foregroundStyle(showingPicker ? Color.accentColor : Color.primary)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(Color(.tertiarySystemFill), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        }
+                    }
+                    .foregroundStyle(.primary)
+
+                    if showingPicker {
+                        datePicker
+                    }
                 }
 
                 if isEditing {
@@ -90,6 +101,7 @@ struct BirthdayFormView: View {
                     }
                 }
             }
+            .contentMargins(.top, 8, for: .scrollContent)
             .navigationTitle(isEditing ? "Edit Birthday" : "New Birthday")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -107,56 +119,60 @@ struct BirthdayFormView: View {
                     dismiss()
                 }
             }
-            .onChange(of: includeYear) { _, on in
-                let cal = Calendar.current
-                if on {
-                    var comps = DateComponents(year: cal.component(.year, from: .now), month: month, day: day)
-                    if let date = cal.date(from: comps), date > .now {
-                        comps.year = (comps.year ?? 0) - 1
-                    }
-                    fullDate = cal.date(from: comps) ?? .now
-                } else {
-                    let comps = cal.dateComponents([.month, .day], from: fullDate)
-                    month = comps.month ?? month
-                    day = comps.day ?? day
-                }
-            }
-            .onChange(of: month) { _, _ in
-                if day > daysInMonth { day = daysInMonth }
+            .onChange(of: month) { _, _ in clampDay() }
+            .onChange(of: year) { _, _ in clampDay() }
+            .onAppear {
+                if !isEditing { nameFocused = true }
             }
         }
+    }
+
+    /// Month, day and year wheels side by side, like the birthday field in Contacts.
+    private var datePicker: some View {
+        HStack(spacing: 0) {
+            Picker("Month", selection: $month) {
+                ForEach(1...12, id: \.self) { m in
+                    Text(Calendar.current.monthSymbols[m - 1]).tag(m)
+                }
+            }
+            Picker("Day", selection: $day) {
+                ForEach(1...daysInMonth, id: \.self) { d in
+                    Text("\(d)").tag(d)
+                }
+            }
+            Picker("Year", selection: $year) {
+                Text("—").tag(0)
+                ForEach((1900...currentYear).reversed(), id: \.self) { y in
+                    Text(String(y)).tag(y)
+                }
+            }
+        }
+        .pickerStyle(.wheel)
+        .frame(height: 180)
+        .listRowInsets(EdgeInsets())
     }
 
     private var daysInMonth: Int {
         // Without a year, allow the 29th of February.
         let cal = Calendar.current
-        let comps = DateComponents(year: 2024, month: month)
+        let comps = DateComponents(year: year == 0 ? 2024 : year, month: month)
         guard let date = cal.date(from: comps), let range = cal.range(of: .day, in: .month, for: date) else { return 31 }
         return range.count
     }
 
-    private func monthName(_ m: Int) -> String {
-        Calendar.current.monthSymbols[m - 1]
+    private func clampDay() {
+        if day > daysInMonth { day = daysInMonth }
     }
 
     private func save() {
-        let cal = Calendar.current
-        var year: Int?
-        var m = month, d = day
-        if includeYear {
-            let comps = cal.dateComponents([.year, .month, .day], from: fullDate)
-            year = comps.year
-            m = comps.month ?? month
-            d = comps.day ?? day
-        }
         switch mode {
         case .add:
-            store.add(Birthday(name: trimmedName, month: m, day: d, year: year, notes: notes))
+            store.add(Birthday(name: trimmedName, month: month, day: day, year: year == 0 ? nil : year, notes: notes))
         case .edit(var b):
             b.name = trimmedName
-            b.month = m
-            b.day = d
-            b.year = year
+            b.month = month
+            b.day = day
+            b.year = year == 0 ? nil : year
             b.notes = notes
             store.update(b)
         }
