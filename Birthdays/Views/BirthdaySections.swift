@@ -3,6 +3,8 @@ import Foundation
 struct BirthdaySection: Identifiable {
     let id: String
     let title: String
+    /// True for Today and Next 7 Days, whose header already gives the timing.
+    var isRelative = false
     var birthdays: [Birthday]
 }
 
@@ -40,8 +42,8 @@ enum BirthdaySections {
         }
 
         var result: [BirthdaySection] = []
-        if !today.isEmpty { result.append(BirthdaySection(id: "today", title: "Today", birthdays: today)) }
-        if !week.isEmpty { result.append(BirthdaySection(id: "week", title: "Next 7 Days", birthdays: week)) }
+        if !today.isEmpty { result.append(BirthdaySection(id: "today", title: "Today", isRelative: true, birthdays: today)) }
+        if !week.isEmpty { result.append(BirthdaySection(id: "week", title: "Next 7 Days", isRelative: true, birthdays: week)) }
         result.append(contentsOf: months)
         return result
     }

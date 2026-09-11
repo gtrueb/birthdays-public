@@ -11,6 +11,7 @@ struct BirthdayListView: View {
     @State private var showingAdd = false
     @State private var showingSettings = false
     @State private var importKind: ImportKind?
+    @State private var path = NavigationPath()
 
     private var filtered: [Birthday] {
         guard !searchText.isEmpty else { return store.birthdays }
@@ -18,7 +19,7 @@ struct BirthdayListView: View {
     }
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $path) {
             Group {
                 if store.birthdays.isEmpty {
                     EmptyBirthdaysView(
@@ -38,6 +39,28 @@ struct BirthdayListView: View {
         .sheet(isPresented: $showingAdd) { BirthdayFormView(mode: .add) }
         .sheet(isPresented: $showingSettings) { SettingsView() }
         .sheet(item: $importKind) { kind in ImportView(kind: kind) }
+        .onAppear { openDebugScreen() }
+    }
+
+    /// Debug only: `-screen detail|add|settings|contacts|calendar|text` opens that screen on launch.
+    private func openDebugScreen() {
+        #if DEBUG
+        guard let index = CommandLine.arguments.firstIndex(of: "-screen"),
+              CommandLine.arguments.indices.contains(index + 1) else { return }
+        let screen = CommandLine.arguments[index + 1]
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            switch screen {
+            case "detail":
+                if let first = BirthdaySections.build(from: store.birthdays).first?.birthdays.first { path.append(first.id) }
+            case "add": showingAdd = true
+            case "settings": showingSettings = true
+            case "contacts": importKind = .contacts
+            case "calendar": importKind = .calendar
+            case "text": importKind = .text
+            default: break
+            }
+        }
+        #endif
     }
 
     private var list: some View {
@@ -45,9 +68,12 @@ struct BirthdayListView: View {
             ForEach(BirthdaySections.build(from: filtered)) { section in
                 Section(section.title) {
                     ForEach(section.birthdays) { birthday in
-                        NavigationLink(value: birthday.id) {
-                            BirthdayRow(birthday: birthday)
+                        Button {
+                            path.append(birthday.id)
+                        } label: {
+                            BirthdayRow(birthday: birthday, showsCountdown: !section.isRelative)
                         }
+                        .foregroundStyle(.primary)
                         .swipeActions(edge: .trailing) {
                             Button(role: .destructive) {
                                 store.delete(birthday)
@@ -59,7 +85,7 @@ struct BirthdayListView: View {
                 }
             }
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.plain)
         .searchable(text: $searchText, prompt: "Search")
         .overlay {
             if filtered.isEmpty {
@@ -93,8 +119,12 @@ struct BirthdayListView: View {
         ToolbarItem(placement: .bottomBar) {
             HStack {
                 Button { showingAdd = true } label: {
-                    Label("New Birthday", systemImage: "plus.circle.fill")
-                        .font(.body.weight(.semibold))
+                    HStack(spacing: 8) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                        Text("New Birthday")
+                            .fontWeight(.semibold)
+                    }
                 }
                 Spacer()
             }

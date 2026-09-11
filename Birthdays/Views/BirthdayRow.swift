@@ -2,8 +2,8 @@ import SwiftUI
 
 struct BirthdayRow: View {
     let birthday: Birthday
-
-    private var isToday: Bool { birthday.daysUntil() == 0 }
+    /// Off in the Today / Next 7 Days sections, where the header already says when.
+    var showsCountdown = true
 
     private var subtitle: String {
         let date = birthday.nextOccurrence().formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
@@ -21,12 +21,18 @@ struct BirthdayRow: View {
                 Text(subtitle)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
+            .layoutPriority(1)
             Spacer(minLength: 8)
-            Text(birthday.countdownText())
-                .font(.subheadline)
-                .foregroundStyle(isToday ? Color.accentColor : Color.secondary)
+            if showsCountdown {
+                Text(birthday.countdownText())
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+            }
         }
         .padding(.vertical, 2)
+        .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] + 52 }
     }
 }

@@ -12,6 +12,7 @@ struct BirthdaysApp: App {
                 .task {
                     #if DEBUG
                     await DebugSeeder.runIfRequested()
+                    if CommandLine.arguments.contains("-resetBirthdays") { store.deleteAll() }
                     if CommandLine.arguments.contains("-seedBirthdays"), store.birthdays.isEmpty {
                         store.merge(DebugSeeder.sampleBirthdays())
                     }

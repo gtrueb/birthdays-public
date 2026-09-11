@@ -26,6 +26,8 @@
 	<string>Birthdays reads birthday events from your calendars so you can import them.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Birthdays reads the birthdays saved with your contacts so you can import them.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>Used only by the debug seeder to add sample reminders.</string>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>
