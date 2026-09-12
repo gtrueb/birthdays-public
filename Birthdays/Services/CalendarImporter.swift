@@ -2,11 +2,6 @@ import EventKit
 import Foundation
 
 enum CalendarImporter {
-    static var isDenied: Bool {
-        let status = EKEventStore.authorizationStatus(for: .event)
-        return status == .denied || status == .restricted || status == .writeOnly
-    }
-
     static func requestAccess() async -> Bool {
         let store = EKEventStore()
         return (try? await store.requestFullAccessToEvents()) ?? false

@@ -93,12 +93,6 @@ extension Birthday {
         return nextYear - year
     }
 
-    /// Current age. Nil when the year is unknown.
-    func currentAge(from reference: Date = .now) -> Int? {
-        guard let turning = ageTurning(from: reference) else { return nil }
-        return daysUntil(from: reference) == 0 ? turning : turning - 1
-    }
-
     var birthDate: Date? {
         guard let year else { return nil }
         return Calendar.current.date(from: DateComponents(year: year, month: month, day: day))
@@ -117,15 +111,6 @@ extension Birthday {
         case 0: return "Today"
         case 1: return "Tomorrow"
         case let d: return "\(d) days"
-        }
-    }
-
-    /// "in 12 days", "today", "tomorrow"
-    func relativeText(from reference: Date = .now) -> String {
-        switch daysUntil(from: reference) {
-        case 0: return "today"
-        case 1: return "tomorrow"
-        case let d: return "in \(d) days"
         }
     }
 

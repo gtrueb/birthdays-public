@@ -8,11 +8,6 @@ enum NotificationScheduler {
         return granted
     }
 
-    static func authorizationDenied() async -> Bool {
-        let settings = await UNUserNotificationCenter.current().notificationSettings()
-        return settings.authorizationStatus == .denied
-    }
-
     /// Replaces all pending notifications with fresh ones for the nearest birthdays.
     static func reschedule(_ birthdays: [Birthday]) {
         let center = UNUserNotificationCenter.current()

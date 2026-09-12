@@ -2,11 +2,6 @@ import Contacts
 import Foundation
 
 enum ContactsImporter {
-    static var isDenied: Bool {
-        let status = CNContactStore.authorizationStatus(for: .contacts)
-        return status == .denied || status == .restricted
-    }
-
     static func requestAccess() async -> Bool {
         let store = CNContactStore()
         return (try? await store.requestAccess(for: .contacts)) ?? false

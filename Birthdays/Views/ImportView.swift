@@ -8,7 +8,6 @@ struct ImportView: View {
         case .contacts:
             ImportPickerView(
                 title: "Choose Contacts",
-                newHeader: "New Contacts",
                 emptyTitle: "No Birthdays Found",
                 emptyMessage: "None of your contacts have a birthday saved.",
                 deniedTitle: "No Access to Contacts",
@@ -21,7 +20,6 @@ struct ImportView: View {
         case .calendar:
             ImportPickerView(
                 title: "Choose Events",
-                newHeader: "New Events",
                 emptyTitle: "No Birthdays Found",
                 emptyMessage: "There are no birthday events in your calendars for the next year.",
                 deniedTitle: "No Access to Calendar",
@@ -47,7 +45,6 @@ struct ImportPickerView: View {
     }
 
     let title: String
-    let newHeader: String
     let emptyTitle: String
     let emptyMessage: String
     let deniedTitle: String
