@@ -66,29 +66,35 @@ struct BirthdayListView: View {
 
     private var list: some View {
         List {
+            // Headers are plain rows, so the spacing around them is exact.
             ForEach(BirthdaySections.build(from: filtered)) { section in
-                Section(section.title) {
-                    ForEach(section.birthdays) { birthday in
-                        Button {
-                            path.append(birthday.id)
+                Text(section.title)
+                    .font(section.id == "today" ? .title2.weight(.bold) : .headline)
+                    .foregroundStyle(Color(.label))
+                    .listRowInsets(EdgeInsets(top: 24, leading: 20, bottom: 6, trailing: 20))
+                    .listRowSeparator(.hidden)
+                ForEach(section.birthdays) { birthday in
+                    // A hidden NavigationLink keeps the native press-and-push feel without the chevron.
+                    ZStack {
+                        NavigationLink(value: birthday.id) { EmptyView() }
+                            .opacity(0)
+                        BirthdayRow(birthday: birthday, showsDate: section.id != "today")
+                    }
+                    .listRowInsets(EdgeInsets(top: 10, leading: 20, bottom: 10, trailing: 20))
+                    .listRowSeparator(birthday.id == section.birthdays.first?.id ? .hidden : .visible, edges: .top)
+                    .listRowSeparator(.visible, edges: .bottom)
+                    .swipeActions(edge: .trailing) {
+                        Button(role: .destructive) {
+                            store.delete(birthday)
                         } label: {
-                            BirthdayRow(birthday: birthday, showsCountdown: !section.isRelative)
-                        }
-                        .foregroundStyle(.primary)
-                        .listRowSeparator(.hidden, edges: .top)
-                        .swipeActions(edge: .trailing) {
-                            Button(role: .destructive) {
-                                store.delete(birthday)
-                            } label: {
-                                Label("Delete", systemImage: "trash")
-                            }
+                            Label("Delete", systemImage: "trash")
                         }
                     }
                 }
             }
         }
         .listStyle(.plain)
-        .listSectionSeparator(.hidden)
+        .contentMargins(.top, 0, for: .scrollContent)
         .searchable(text: $searchText, prompt: "Search")
         .overlay {
             if filtered.isEmpty {
@@ -124,12 +130,12 @@ struct BirthdayListView: View {
                 Button { showingAdd = true } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "plus.circle.fill")
-                            .font(.title2)
+                            .font(.system(size: 21))
                         Text("New Birthday")
-                            .fontWeight(.bold)
+                            .fontWeight(.semibold)
                     }
                 }
-                .padding(.leading, -8)
+                .padding(.leading, -10)
                 Spacer()
             }
         }
@@ -146,10 +152,9 @@ struct EmptyBirthdaysView: View {
         ContentUnavailableView {
             Label("No Birthdays", systemImage: "birthday.cake")
         } description: {
-            Text("Birthdays you add or import will appear here.")
+            Text("Birthdays you add will appear here.")
         } actions: {
             Button("Import from Contacts", action: onImport)
-                .buttonStyle(.bordered)
         }
     }
 }

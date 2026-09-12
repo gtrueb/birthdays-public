@@ -20,13 +20,14 @@ enum NotificationScheduler {
         let prefs = NotificationPreferences.current
         guard prefs.enabled else { return }
 
-        let hour = prefs.minutesSinceMidnight / 60
-        let minute = prefs.minutesSinceMidnight % 60
         let cal = Calendar.current
         // iOS keeps at most 64 pending requests per app.
         let upcoming = birthdays.filter(\.notify).sorted { $0.daysUntil() < $1.daysUntil() }.prefix(20)
 
         for birthday in upcoming {
+            let minutes = birthday.reminderMinutes ?? prefs.minutesSinceMidnight
+            let hour = minutes / 60
+            let minute = minutes % 60
             let next = birthday.nextOccurrence()
             let age = birthday.ageTurning()
             schedule(center, id: "\(birthday.id)-day", on: next, hour: hour, minute: minute,

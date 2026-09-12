@@ -6,7 +6,6 @@ struct BirthdayDetailView: View {
     @Environment(\.openURL) private var openURL
     let id: UUID
     @State private var editing = false
-    @State private var confirmDelete = false
 
     var body: some View {
         if let birthday = store.birthday(id: id) {
@@ -27,14 +26,7 @@ struct BirthdayDetailView: View {
 
                 Section {
                     Button { openCalendar(birthday) } label: {
-                        field("birthday", value: birthday.longDateText)
-                            .foregroundStyle(Color.accentColor)
-                    }
-                    if birthday.daysUntil() > 0 {
-                        field("next birthday", value: nextText(birthday))
-                    }
-                    if let age = birthday.currentAge(), birthday.daysUntil() > 0 {
-                        field("age", value: "\(age)")
+                        field("birthday", value: birthday.longDateText, tinted: true)
                     }
                 }
 
@@ -48,14 +40,13 @@ struct BirthdayDetailView: View {
                     ShareLink(item: shareText(birthday)) {
                         Text("Share Birthday")
                     }
-                    Button("Delete Birthday", role: .destructive) {
-                        confirmDelete = true
-                    }
                 }
+
             }
             .listStyle(.insetGrouped)
             .listSectionSpacing(16)
-            .contentMargins(.top, 8, for: .scrollContent)
+            .environment(\.defaultMinListRowHeight, 44)
+            .contentMargins(.top, 16, for: .scrollContent)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -64,12 +55,6 @@ struct BirthdayDetailView: View {
             }
             .sheet(isPresented: $editing) {
                 BirthdayFormView(mode: .edit(birthday))
-            }
-            .confirmationDialog("Delete this birthday?", isPresented: $confirmDelete, titleVisibility: .visible) {
-                Button("Delete Birthday", role: .destructive) {
-                    store.delete(birthday)
-                    dismiss()
-                }
             }
         } else {
             Color.clear.onAppear { dismiss() }
@@ -83,21 +68,19 @@ struct BirthdayDetailView: View {
             AvatarView(birthday: birthday, size: 96)
                 .padding(.bottom, 8)
             Text(birthday.name)
-                .font(.title.weight(.bold))
+                .font(.title2.weight(.bold))
                 .multilineTextAlignment(.center)
             Text(headline(birthday))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.bottom, 4)
     }
 
+    /// "Turns 29 in 15 days, Sunday, September 27" — one secondary line, like Contacts.
     private func headline(_ birthday: Birthday) -> String {
-        if let age = birthday.ageTurning() {
-            return "Turns \(age) \(birthday.relativeText())"
-        }
-        return "Birthday \(birthday.relativeText())"
+        let lead = birthday.ageTurning().map { "Turns \($0) \(birthday.relativeText())" } ?? "Birthday \(birthday.relativeText())"
+        return birthday.daysUntil() > 1 ? "\(lead), \(nextText(birthday))" : lead
     }
 
     private func nextText(_ birthday: Birthday) -> String {
@@ -138,8 +121,8 @@ struct BirthdayDetailView: View {
         Button(action: action) {
             VStack(spacing: 3) {
                 Image(systemName: systemImage)
-                    .font(.system(size: 20))
-                    .frame(height: 24)
+                    .font(.system(size: 21, weight: .regular))
+                    .frame(width: 26, height: 24)
                 Text(title)
                     .font(.caption2)
             }
@@ -158,13 +141,14 @@ struct BirthdayDetailView: View {
 
     // MARK: - Contacts-style stacked field
 
-    private func field(_ label: String, value: String) -> some View {
+    private func field(_ label: String, value: String, tinted: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
                 .font(.footnote)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Color(.secondaryLabel))
             Text(value)
                 .font(.body)
+                .foregroundStyle(tinted ? Color.accentColor : Color(.label))
         }
         .padding(.vertical, 2)
     }

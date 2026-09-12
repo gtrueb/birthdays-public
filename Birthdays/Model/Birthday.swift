@@ -18,6 +18,8 @@ struct Birthday: Identifiable, Codable, Hashable {
     var imageData: Data?
     /// Per-person switch; the global setting still has to be on.
     var notify: Bool
+    /// Minutes after midnight, or nil to use the app-wide time.
+    var reminderMinutes: Int?
 
     init(id: UUID = UUID(),
          name: String,
@@ -30,7 +32,8 @@ struct Birthday: Identifiable, Codable, Hashable {
          phoneNumber: String? = nil,
          email: String? = nil,
          imageData: Data? = nil,
-         notify: Bool = true) {
+         notify: Bool = true,
+         reminderMinutes: Int? = nil) {
         self.id = id
         self.name = name
         self.month = month
@@ -43,6 +46,7 @@ struct Birthday: Identifiable, Codable, Hashable {
         self.email = email
         self.imageData = imageData
         self.notify = notify
+        self.reminderMinutes = reminderMinutes
     }
 }
 
@@ -61,6 +65,7 @@ extension Birthday {
         email = try c.decodeIfPresent(String.self, forKey: .email)
         imageData = try c.decodeIfPresent(Data.self, forKey: .imageData)
         notify = try c.decodeIfPresent(Bool.self, forKey: .notify) ?? true
+        reminderMinutes = try c.decodeIfPresent(Int.self, forKey: .reminderMinutes)
     }
 
     /// The next date this birthday falls on. Today counts.

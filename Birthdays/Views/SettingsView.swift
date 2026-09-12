@@ -27,14 +27,14 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section {
-                    Toggle("Allow Notifications", isOn: $notificationsEnabled)
+                    Toggle("Birthday Reminders", isOn: $notificationsEnabled)
                     if notificationsEnabled {
                         DatePicker("Time", selection: timeBinding, displayedComponents: .hourAndMinute)
                     }
                 } header: {
                     Text("Notifications")
                 } footer: {
-                    Text("Receive a notification on the morning of each birthday.")
+                    Text("Get notified on the morning of each birthday.")
                 }
 
                 if notificationsEnabled {
@@ -52,9 +52,10 @@ struct SettingsView: View {
                     Button("Delete All Birthdays", role: .destructive) {
                         confirmDeleteAll = true
                     }
+                    .frame(maxWidth: .infinity)
                     .disabled(store.birthdays.isEmpty)
                 } footer: {
-                    Text("Removes every birthday from this app. Contacts will not be affected.")
+                    Text("Removes every birthday from this app. Your contacts won't be affected.")
                 }
             }
             .contentMargins(.horizontal, 16, for: .scrollContent)
@@ -97,8 +98,8 @@ struct SettingsView: View {
                 Text("This cannot be undone.")
             }
         }
-        .presentationDetents([.height(notificationsEnabled ? 560 : 330)])
-        .presentationDragIndicator(.hidden)
+        .presentationDetents([.height(notificationsEnabled ? 486 : 278)])
+        .presentationDragIndicator(.visible)
     }
 
     private func reschedule() {

@@ -2,37 +2,36 @@ import SwiftUI
 
 struct BirthdayRow: View {
     let birthday: Birthday
-    /// Off in the Today / Next 7 Days sections, where the header already says when.
-    var showsCountdown = true
+    /// Off in the Today section, where the header already says when.
+    var showsDate = true
 
-    private var subtitle: String {
-        let date = birthday.nextOccurrence().formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
-        if let age = birthday.ageTurning() {
-            return "\(date) · Turns \(age)"
-        }
-        return date
+    private var subtitle: String? {
+        guard showsDate else { return nil }
+        return birthday.nextOccurrence().formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())
     }
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 16) {
             AvatarView(birthday: birthday, size: 40)
             VStack(alignment: .leading, spacing: 3) {
                 Text(birthday.name)
-                Text(subtitle)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
             }
             .layoutPriority(1)
             Spacer(minLength: 8)
-            if showsCountdown {
-                Text(birthday.countdownText())
+            if let age = birthday.ageTurning() {
+                Text("Turns \(age)")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .fixedSize()
             }
         }
-        .padding(.vertical, 2)
-        .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] + 52 }
+        .padding(.vertical, 0)
+        .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] + 56 }
     }
 }

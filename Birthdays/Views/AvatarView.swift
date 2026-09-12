@@ -12,10 +12,10 @@ struct AvatarView: View {
                     .scaledToFill()
             } else {
                 ZStack {
-                    LinearGradient(colors: [Color(.systemGray2), Color(.systemGray)],
+                    LinearGradient(colors: [Color(.systemGray), Color(.darkGray)],
                                    startPoint: .top, endPoint: .bottom)
                     Text(birthday.initials)
-                        .font(.system(size: size * 0.42, weight: .medium))
+                        .font(.system(size: size * 0.44, weight: .medium))
                         .foregroundStyle(.white)
                 }
             }

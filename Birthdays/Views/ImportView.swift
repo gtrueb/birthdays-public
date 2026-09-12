@@ -68,8 +68,12 @@ struct ImportPickerView: View {
                 .navigationTitle(selected.isEmpty ? title : "\(selected.count) Selected")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
-                    ToolbarItem(placement: .topBarTrailing) {
+                    ToolbarItem(placement: .cancellationAction) {
                         Button("Cancel") { dismiss() }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Import") { importSelected() }
+                            .disabled(selected.isEmpty)
                     }
                 }
                 .task { await loadItems() }
@@ -132,19 +136,15 @@ struct ImportPickerView: View {
         .listStyle(.insetGrouped)
         .environment(\.editMode, .constant(.active))
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search")
+        .contentMargins(.top, 8, for: .scrollContent)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button(selected.count == new.count && !new.isEmpty ? "Deselect All" : "Select All") {
-                    if selected.count == new.count { selected.removeAll() } else { selected = Set(new.map(\.id)) }
-                }
-                .disabled(new.isEmpty)
-            }
             ToolbarItem(placement: .bottomBar) {
                 HStack {
+                    Button(selected.count == new.count && !new.isEmpty ? "Deselect All" : "Select All") {
+                        if selected.count == new.count { selected.removeAll() } else { selected = Set(new.map(\.id)) }
+                    }
+                    .disabled(new.isEmpty)
                     Spacer()
-                    Button("Import") { importSelected() }
-                        .fontWeight(.semibold)
-                        .disabled(selected.isEmpty)
                 }
             }
         }
