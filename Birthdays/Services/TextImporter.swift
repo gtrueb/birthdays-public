@@ -133,7 +133,7 @@ enum TextImporter {
         var text = line
         text.removeSubrange(range)
         text = text.replacingOccurrences(of: #"(?i)\b(born|geb\.?|geboren|birthday|bday|geburtstag)\b"#, with: "", options: .regularExpression)
-        let junk = CharacterSet(charactersIn: ",;:-–—|()*\t").union(.whitespacesAndNewlines)
+        let junk = CharacterSet(charactersIn: ",;:.-–—|()*\t").union(.whitespacesAndNewlines)
         text = text.trimmingCharacters(in: junk)
         return text.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
     }

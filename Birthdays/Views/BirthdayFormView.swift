@@ -95,8 +95,8 @@ struct BirthdayFormView: View {
                         withAnimation(.snappy) { showingPicker.toggle() }
                         nameFocused = false
                     } label: {
-                        HStack(spacing: 12) {
-                            badge("calendar", color: .red)
+                        HStack(spacing: 16) {
+                            badge("calendar", color: .red, size: 16)
                             Text("Date")
                             Spacer()
                             Text(dateText)
@@ -113,18 +113,22 @@ struct BirthdayFormView: View {
                     }
 
                     Toggle(isOn: $notify.animation()) {
-                        HStack(spacing: 12) {
-                            badge("bell.fill", color: .orange)
+                        HStack(spacing: 16) {
+                            badge("bell.fill", color: .orange, size: 17)
                             Text("Remind Me")
                         }
                     }
                     if notify {
                         DatePicker(selection: $reminderTime, displayedComponents: .hourAndMinute) {
-                            HStack(spacing: 12) {
-                                badge("clock.fill", color: .blue)
+                            HStack(spacing: 16) {
+                                badge("clock.fill", color: .blue, size: 17)
                                 Text("Time")
                             }
                         }
+                    }
+                } footer: {
+                    if notify {
+                        Text("You'll be notified at \(reminderTime.formatted(date: .omitted, time: .shortened)) on the day.")
                     }
                 }
 
@@ -163,11 +167,11 @@ struct BirthdayFormView: View {
     }
 
     /// The 29pt tinted square Apple puts in front of rows in Reminders and Settings.
-    private func badge(_ systemImage: String, color: Color) -> some View {
+    private func badge(_ systemImage: String, color: Color, size: CGFloat = 17) -> some View {
         Image(systemName: systemImage)
-            .font(.system(size: 15, weight: .medium))
+            .font(.system(size: size, weight: .medium))
             .foregroundStyle(.white)
-            .frame(width: 29, height: 29)
+            .frame(width: 30, height: 30)
             .background(color, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
     }
 

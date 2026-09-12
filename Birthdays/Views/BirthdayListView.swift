@@ -67,11 +67,13 @@ struct BirthdayListView: View {
     private var list: some View {
         List {
             // Headers are plain rows, so the spacing around them is exact.
-            ForEach(BirthdaySections.build(from: filtered)) { section in
+            let sections = BirthdaySections.build(from: filtered)
+            ForEach(sections) { section in
+                // Like Reminders: the first group is loud, later groups are quiet.
                 Text(section.title)
-                    .font(section.id == "today" ? .title2.weight(.bold) : .headline)
-                    .foregroundStyle(Color(.label))
-                    .listRowInsets(EdgeInsets(top: 24, leading: 20, bottom: 6, trailing: 20))
+                    .font(section.id == sections.first?.id ? .title2.weight(.bold) : .headline)
+                    .foregroundStyle(section.id == sections.first?.id ? Color(.label) : Color(.secondaryLabel))
+                    .listRowInsets(EdgeInsets(top: section.id == sections.first?.id ? 4 : 24, leading: 20, bottom: 6, trailing: 20))
                     .listRowSeparator(.hidden)
                 ForEach(section.birthdays) { birthday in
                     // A hidden NavigationLink keeps the native press-and-push feel without the chevron.

@@ -56,7 +56,8 @@ enum CalendarImporter {
             text = text.replacingOccurrences(of: word, with: "", options: [.caseInsensitive])
         }
         text = text.replacingOccurrences(of: #"(?i)\b(of|von|de|di)\b"#, with: "", options: .regularExpression)
-        text = text.replacingOccurrences(of: #"\(.*?\)|\[.*?\]|\*?\d{4}|\d+"#, with: "", options: .regularExpression)
+        // "Aylin Demir's 29th Birthday" -> drop "(…)", "[…]", "*1990", "29th"
+        text = text.replacingOccurrences(of: #"\(.*?\)|\[.*?\]|\*?\d{4}|\d+(?:st|nd|rd|th)?\.?"#, with: "", options: [.regularExpression, .caseInsensitive])
         text = text.replacingOccurrences(of: #"['’]s\b|['’]$"#, with: "", options: .regularExpression)
         text = text.replacingOccurrences(of: #"[:,\-–—|!🎂🎉🎈🎁]"#, with: " ", options: .regularExpression)
         text = text.replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
@@ -69,9 +70,12 @@ enum CalendarImporter {
            let year = Int(title[match]), year <= eventYear {
             return year
         }
-        if let match = title.range(of: #"\((\d{1,3})\)"#, options: .regularExpression) {
-            let digits = title[match].filter(\.isNumber)
-            if let age = Int(digits), age > 0, age < 130 { return eventYear - age }
+        // "(30)" or "30th" is the age reached on that day.
+        for pattern in [#"\((\d{1,3})\)"#, #"\b(\d{1,3})(?:st|nd|rd|th)\b"#] {
+            if let match = title.range(of: pattern, options: [.regularExpression, .caseInsensitive]) {
+                let digits = title[match].filter(\.isNumber)
+                if let age = Int(digits), age > 0, age < 130 { return eventYear - age }
+            }
         }
         return nil
     }

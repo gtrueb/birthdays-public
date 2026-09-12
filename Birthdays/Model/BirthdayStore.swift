@@ -52,9 +52,11 @@ final class BirthdayStore {
     func contains(_ candidate: Birthday) -> Bool {
         birthdays.contains { existing in
             if let cid = candidate.contactIdentifier, cid == existing.contactIdentifier { return true }
-            return existing.name.caseInsensitiveCompare(candidate.name) == .orderedSame
-                && existing.month == candidate.month
-                && existing.day == candidate.day
+            guard existing.name.caseInsensitiveCompare(candidate.name) == .orderedSame,
+                  existing.month == candidate.month else { return false }
+            // Calendar moves Feb 29 birthdays to Feb 28 in non-leap years.
+            let leapDay = existing.month == 2 && Set([existing.day, candidate.day]) == [28, 29]
+            return existing.day == candidate.day || leapDay
         }
     }
 

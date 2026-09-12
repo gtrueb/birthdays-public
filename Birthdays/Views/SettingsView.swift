@@ -31,10 +31,8 @@ struct SettingsView: View {
                     if notificationsEnabled {
                         DatePicker("Time", selection: timeBinding, displayedComponents: .hourAndMinute)
                     }
-                } header: {
-                    Text("Notifications")
                 } footer: {
-                    Text("Get notified on the morning of each birthday.")
+                    Text("Receive a notification on the morning of each birthday.")
                 }
 
                 if notificationsEnabled {
@@ -55,10 +53,11 @@ struct SettingsView: View {
                     .frame(maxWidth: .infinity)
                     .disabled(store.birthdays.isEmpty)
                 } footer: {
-                    Text("Removes every birthday from this app. Your contacts won't be affected.")
+                    Text("Deletes all birthdays. Your contacts won't be affected.")
                 }
             }
             .contentMargins(.horizontal, 16, for: .scrollContent)
+            .contentMargins(.top, 30, for: .scrollContent)
             .environment(\.defaultMinListRowHeight, 44)
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
@@ -98,7 +97,7 @@ struct SettingsView: View {
                 Text("This cannot be undone.")
             }
         }
-        .presentationDetents([.height(notificationsEnabled ? 486 : 278)])
+        .presentationDetents([.height(notificationsEnabled ? 478 : 270)])
         .presentationDragIndicator(.visible)
     }
 

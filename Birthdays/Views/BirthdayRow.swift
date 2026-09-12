@@ -13,22 +13,24 @@ struct BirthdayRow: View {
     var body: some View {
         HStack(spacing: 16) {
             AvatarView(birthday: birthday, size: 40)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(birthday.name)
-                if let subtitle {
-                    Text(subtitle)
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(birthday.name)
+                    if let subtitle {
+                        Text(subtitle)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+                .layoutPriority(1)
+                Spacer(minLength: 8)
+                if let age = birthday.ageTurning() {
+                    Text("Turns \(age)")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                        .fixedSize()
                 }
-            }
-            .layoutPriority(1)
-            Spacer(minLength: 8)
-            if let age = birthday.ageTurning() {
-                Text("Turns \(age)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .fixedSize()
             }
         }
         .padding(.vertical, 0)

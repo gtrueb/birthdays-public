@@ -32,13 +32,14 @@ struct BirthdayDetailView: View {
 
                 if !birthday.notes.isEmpty {
                     Section {
-                        field("notes", value: birthday.notes)
+                        field("Notes", value: birthday.notes)
                     }
                 }
 
                 Section {
                     ShareLink(item: shareText(birthday)) {
                         Text("Share Birthday")
+                            .padding(.vertical, 2)
                     }
                 }
 
@@ -46,7 +47,7 @@ struct BirthdayDetailView: View {
             .listStyle(.insetGrouped)
             .listSectionSpacing(16)
             .environment(\.defaultMinListRowHeight, 44)
-            .contentMargins(.top, 16, for: .scrollContent)
+            .contentMargins(.top, 24, for: .scrollContent)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -73,14 +74,23 @@ struct BirthdayDetailView: View {
             Text(headline(birthday))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+            if birthday.daysUntil() > 1 {
+                Text("In \(birthday.daysUntil()) days")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
         }
         .frame(maxWidth: .infinity)
     }
 
-    /// "Turns 29 in 15 days, Sunday, September 27" — one secondary line, like Contacts.
+    /// "Turns 29 on Sunday, September 27", or "Turns 32 today".
     private func headline(_ birthday: Birthday) -> String {
-        let lead = birthday.ageTurning().map { "Turns \($0) \(birthday.relativeText())" } ?? "Birthday \(birthday.relativeText())"
-        return birthday.daysUntil() > 1 ? "\(lead), \(nextText(birthday))" : lead
+        let who = birthday.ageTurning().map { "Turns \($0)" } ?? "Birthday"
+        switch birthday.daysUntil() {
+        case 0: return "\(who) today"
+        case 1: return "\(who) tomorrow"
+        default: return "\(who) on \(nextText(birthday))"
+        }
     }
 
     private func nextText(_ birthday: Birthday) -> String {
@@ -124,7 +134,7 @@ struct BirthdayDetailView: View {
                     .font(.system(size: 21, weight: .regular))
                     .frame(width: 26, height: 24)
                 Text(title)
-                    .font(.caption2)
+                    .font(.system(size: 11))
             }
             .frame(maxWidth: .infinity)
             .frame(height: 56)
