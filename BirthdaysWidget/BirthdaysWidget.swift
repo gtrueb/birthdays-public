@@ -50,7 +50,7 @@ struct BirthdaysWidgetView: View {
             } else if family == .systemSmall {
                 small(upcoming[0])
             } else {
-                medium(Array(upcoming.prefix(4)))
+                medium(Array(upcoming.prefix(3)))
             }
         }
         .containerBackground(.fill.tertiary, for: .widget)

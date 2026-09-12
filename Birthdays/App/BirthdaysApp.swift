@@ -1,4 +1,5 @@
 import SwiftUI
+import WidgetKit
 
 @main
 struct BirthdaysApp: App {
@@ -22,6 +23,7 @@ struct BirthdaysApp: App {
         .onChange(of: scenePhase) { _, phase in
             if phase == .active {
                 NotificationScheduler.reschedule(store.birthdays)
+                WidgetCenter.shared.reloadAllTimelines()
             }
         }
     }

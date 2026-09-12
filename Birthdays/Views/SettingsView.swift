@@ -31,6 +31,8 @@ struct SettingsView: View {
                     if notificationsEnabled {
                         DatePicker("Time", selection: timeBinding, displayedComponents: .hourAndMinute)
                     }
+                } header: {
+                    Text("Notifications")
                 } footer: {
                     Text("Receive a notification on the morning of each birthday.")
                 }
@@ -97,7 +99,7 @@ struct SettingsView: View {
                 Text("This cannot be undone.")
             }
         }
-        .presentationDetents([.height(notificationsEnabled ? 478 : 270)])
+        .presentationDetents([.height(notificationsEnabled ? 500 : 292)])
         .presentationDragIndicator(.visible)
     }
 
