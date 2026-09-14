@@ -3,7 +3,10 @@
 # Run this from your own Terminal: macOS may ask to allow codesign to use your key -> click "Always Allow".
 set -e
 cd "$(dirname "$0")/.."
-DEVICE=$(xcrun devicectl list devices 2>/dev/null | awk '/available/ {print $(NF-2)}' | head -1)
+DEVICE=$(xcrun devicectl list devices --json-output /tmp/devices.json >/dev/null 2>&1; python3 -c "
+import json; d=json.load(open('/tmp/devices.json'))['result']['devices']
+ok=[x for x in d if x.get('connectionProperties',{}).get('tunnelState')=='connected' or 'available' in str(x.get('connectionProperties',{}).get('pairingState','')) ]
+print((ok or d)[0]['identifier'] if d else '')")
 if [ -z "$DEVICE" ]; then echo "No connected iPhone found. Plug it in and unlock it."; exit 1; fi
 echo "Building for iPhone…"
 xcodebuild -project Birthdays.xcodeproj -scheme Birthdays -sdk iphoneos -configuration Release \
