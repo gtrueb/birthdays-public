@@ -2,6 +2,12 @@
 
 A small birthday calendar for iPhone that looks and feels like an Apple app.
 
+<p>
+  <img src="docs/screenshots/list.png" width="250" alt="List of upcoming birthdays">
+  <img src="docs/screenshots/detail.png" width="250" alt="Detail page of one birthday">
+  <img src="docs/screenshots/add.png" width="250" alt="Form to add a new birthday">
+</p>
+
 - Upcoming birthdays grouped by Today, Next 7 Days, and month
 - Import from Contacts, from Calendar, or from pasted text ("Anna Meier, 14 September 1990")
 - Detail page with message / call / FaceTime / mail, notes, share
@@ -33,4 +39,7 @@ A free Apple ID works. The app then has to be reinstalled every 7 days; a paid d
 - `scripts/build.sh` – builds for the simulator
 - `scripts/sim.sh boot|install|launch|shot` – runs the app on the "Gauntlet iPhone" simulator
 - Launch arguments for testing (Debug builds only): `-seedBirthdays`, `-seedContacts`, `-resetBirthdays`, `-screen detail|add|settings|contacts|calendar|text`
-- `progress/` holds the design gauntlet history: every round's screenshots and the live page generator.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

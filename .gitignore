@@ -2,5 +2,3 @@ build/
 *.xcodeproj
 xcuserdata/
 .DS_Store
-progress/shots/motion/*/frames_*
-progress/shots/**/*.small.jpg
